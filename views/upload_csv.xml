@@ -1,0 +1,38 @@
+<openerp>
+    <data>
+
+         <record id="file_upload_tree_view" model="ir.ui.view">
+            <field name="name">file.upload.tree.view</field>
+            <field name="model">upload.csv</field>
+            <!--<field name="inherit_id" ref="crm.crm_case_form_view_leads"/>-->
+            <field name="arch" type="xml">
+                <tree>
+                            <field name="file_upload"/>
+
+                    </tree>
+            </field>
+         </record>
+            <record id="file_upload_form_view" model="ir.ui.view">
+            <field name="name">file.upload.form.view</field>
+            <field name="model">upload.csv</field>
+            <!--<field name="inherit_id" ref="crm.crm_case_form_view_leads"/>-->
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="file_upload"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_file_upload" model="ir.actions.act_window">
+            <field name="name">upload.csv</field>
+            <field name="res_model">upload.csv</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <!--<field name="view_id" ref="view_book_tour"/>-->
+        </record>
+    </data>
+</openerp>
