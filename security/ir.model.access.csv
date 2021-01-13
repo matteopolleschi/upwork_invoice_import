@@ -1,0 +1,5 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+customer_upload_csv_manager,customer_upload_csv manager,model_customer_upload_csv,base.user_admin,1,1,1,1
+customer_upload_csv_read_all,customer_upload_csv all,model_customer_upload_csv,base.group_public,1,0,0,0
+supplier_upload_csv_manager,supplier_upload_csv manager,model_supplier_upload_csv,base.user_admin,1,1,1,1
+supplier_upload_csv_read_all,supplier_upload_csv all,model_supplier_upload_csv,base.group_public,1,0,0,0

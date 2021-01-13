@@ -12,12 +12,9 @@ _logger = logging.getLogger(__name__)
 
 class customerUploadCSV(models.TransientModel):
     _name = 'customer.upload.csv'
-
-
+    _description = "Customer upload csv"
 
     file_upload=fields.Binary(string="File")
-
-
 
 
     @api.multi
@@ -142,6 +139,7 @@ class customerUploadCSV(models.TransientModel):
 
 class SupplierUploadCSV(models.TransientModel):
     _name = 'supplier.upload.csv'
+    _description = "Supplier upload csv"
 
     file_upload = fields.Binary(string="File")
 
