@@ -1,7 +1,8 @@
-<openerp>
+<odoo>
     <data>
+
         <!--customer Invoice Input-->
-            <record id="customer_file_upload_form_view" model="ir.ui.view">
+        <record id="customer_file_upload_form_view" model="ir.ui.view">
             <field name="name">customer.file.upload.form.view</field>
             <field name="model">customer.upload.csv</field>
             <!--<field name="inherit_id" ref="crm.crm_case_form_view_leads"/>-->
@@ -11,11 +12,9 @@
                         <group>
                             <field name="file_upload"/>
                         </group>
-                        <button name="customer_invoice_upload_csv" string="Customer Invoice input" type="object" class="oe_highlight" />
-
+                        <button name="customer_invoice_upload_csv" string="Customer Invoice input" type="object" class="oe_highlight"/>
                     </sheet>
                 </form>
-
             </field>
         </record>
 
@@ -26,13 +25,14 @@
             <field name="view_mode">form</field>
             <!--<field name="view_id" ref="view_book_tour"/>-->
         </record>
+
         <act_window id="customer_file_upload_wizard_action"
             name="Customer Invoice input"
             src_model="account.invoice"
             res_model="customer.upload.csv"
             view_type="form" view_mode="form"
             key2="client_action_multi" target="new"
-            />
+        />
 
         <!--supplier invoice Input-->
         <record id="supplier_file_upload_form_view" model="ir.ui.view">
@@ -49,7 +49,6 @@
                         <button name="supplier_invoice_upload_csv" string="Supplier Invoice input" type="object" class="oe_highlight" />
                     </sheet>
                 </form>
-
             </field>
         </record>
 
@@ -60,13 +59,14 @@
             <field name="view_mode">form</field>
             <!--<field name="view_id" ref="view_book_tour"/>-->
         </record>
+
         <act_window id="supplier_file_upload_wizard_action"
             name="Supplier Invoice input"
             src_model="account.invoice"
             res_model="supplier.upload.csv"
             view_type="form" view_mode="form"
             key2="client_action_multi" target="new"
-            />
+        />
 
     </data>
-</openerp>
+</odoo>
