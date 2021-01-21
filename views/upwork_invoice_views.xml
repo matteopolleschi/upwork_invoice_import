@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="upwork_invoice_form_view">
+        <field name="name">upwork.invoice.form</field>
+        <field name="model">upwork.invoice</field>
+        <field name="arch" type="xml">
+            <form string="Upwork Invoice Form" class="o_subscription_form">
+                <header>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1'}"/>
+                </header>
+                <sheet string="Invoice">
+                    <group name="main">
+                        <group>
+                            <field name="name"/>
+                            <field name="invoice_date"/>
+                            <field name="invoice_type"/>
+                            <field name="agency"/>
+                            <field name="freelancer"/>
+                            <field name="team"/>
+                            <field name="in_progress" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="account_name"/>
+                            <field name="po"/>
+                            <field name="amount"/>
+                            <field name="amount_local_currency"/>
+                            <field name="currency_id"/>
+                            <field name="balance"/>
+                        </group>
+                        <group>
+                            <field name="invoice_file"/>
+                        </group>
+                    </group>
+                    <div>
+                        <notebook>
+                            <page name="description" string="Description">
+                                <field name="description" placeholder="Upwork Invoice Description"/>
+                            </page>
+                        </notebook>
+                    </div>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_search_view">
+        <field name="name">upwork.invoice.search</field>
+        <field name="model">upwork.invoice</field>
+        <field name="arch" type="xml">
+            <search string="Upwork Invoice Search">
+                <field name="name"/>
+                <field name="invoice_date"/>
+                <field name="invoice_type"/>
+                <field name="agency"/>
+                <field name="freelancer"/>
+                <field name="team"/>
+                <field name="account_name"/>
+                <group string="Group By">
+                    <filter string="Stage" name="stage" domain="[]" context="{'group_by':'stage_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_tree_view">
+        <field name="name">upwork.invoice.tree</field>
+        <field name="model">upwork.invoice</field>
+        <field name="arch" type="xml">
+            <tree string="Upwork Invoice Tree">
+                <field name="name"/>
+                <field name="invoice_date"/>
+                <field name="invoice_type"/>
+                <field name="description"/>
+                <field name="freelancer"/>
+                <field name="po"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="balance"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_kanban_view">
+        <field name="name">upwork.invoice.kanban</field>
+        <field name="model">upwork.invoice</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="invoice_type" class="o_kanban_mobile">
+                <field name="stage_id"/>
+                <field name="name"/>
+                <field name="invoice_date"/>
+                <field name="invoice_type"/>
+                <field name="agency"/>
+                <field name="freelancer"/>
+                <field name="team"/>
+                <field name="account_name"/>
+                <field name="po"/>
+                <field name="amount"/>
+                <field name="amount_local_currency"/>
+                <field name="currency_id"/>
+                <field name="balance"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown">
+                                <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                    <span class="fa fa-ellipsis-v"/>
+                                </a>
+                                <div class="dropdown-menu" role="menu">
+                                    <t t-if="widget.editable"><a role="menuitem" type="edit" class="dropdown-item">Edit</a></t>
+                                    <t t-if="widget.deletable"><a role="menuitem" type="delete" class="dropdown-item">Delete</a></t>
+                                    <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                </div>
+                            </div>
+                            <div class="oe_kanban_content">
+                                <div>
+                                    <strong>
+                                        <field name="name"/>
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <field name="invoice_date"/>
+                                    <field name="invoice_type"/>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <img t-if="record.freelancer.raw_value" t-att-src="kanban_image('res.partner', 'image_small', record.freelancer.raw_value)" t-att-title="record.freelancer.value" t-att-alt="record.freelancer.value" width="30" height="30" class="oe_kanban_avatar"/>
+                                        <img t-if="record.agency.raw_value" t-att-src="kanban_image('res.partner', 'image_small', record.agency.raw_value)" t-att-title="record.agency.value" t-att-alt="record.agency.value" width="30" height="30" class="oe_kanban_avatar"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="amount" widget="monetary"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="oe_clear"></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_calendar_view">
+        <field name="name">upwork.invoice.calendar</field>
+        <field name="model">upwork.invoice</field>
+        <field name="arch" type="xml">
+            <calendar string="Upwork Invoice Calendar" date_start="invoice_date" date_stop="invoice_date" color="color">
+                <field name="name"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="upwork_invoice_list_action">
+        <field name="name">Upwork Invoice</field>
+        <field name="res_model">upwork.invoice</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">kanban,tree,calendar,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Click on import to create some upwork invoices
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_stage_tree_view">
+        <field name="name">upwork.invoice.stage.tree</field>
+        <field name="model">upwork.invoice.stage</field>
+        <field name="arch" type="xml">
+            <tree string="Stage Tree">
+                <field name="name"/>
+                <field name="sequence"/>
+                <field name="fold"/>
+                <field name="description"/>
+                <field name="in_progress"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_stage_form_view">
+        <field name="name">upwork.invoice.stage.form</field>
+        <field name="model">upwork.invoice.stage</field>
+        <field name="arch" type="xml">
+            <form string="Stage Form">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence" groups="base.group_no_one"/>
+                        </group>
+                        <group>
+                            <field name="fold"/>
+                            <field name="in_progress"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Add a description..." nolabel="1" colspan="2"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="upwork_invoice_stage_list_action">
+        <field name="name">Upwork Invoice Stages</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">upwork.invoice.stage</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new upwork invoice stage
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_import_form_view">
+        <field name="name">upwork.invoice.import.form</field>
+        <field name="model">upwork.invoice.import</field>
+        <field name="arch" type="xml">
+            <form string="Import Form">
+                <group col="4" string="Import Upwork Invoices">
+                    <field name="invoice_files" widget="many2many_binary"/>
+                </group>
+                <footer>
+                    <button name="import_files" string="Import" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel" name="cancel" class="oe_link"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="upwork_invoice_import_list_action">
+        <field name="name">Import Upwork Invoices</field>
+        <field name="res_model">upwork.invoice.import</field>
+        <field name="view_type">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="upwork_invoice_import_form_view"/>
+    </record>
+
+    <menuitem id="main_upwork_invoice_menu" name="Upwork Invoice" action="upwork_invoice_list_action"/>
+    <menuitem id="import_menu" name="Multi File Import"  parent="main_upwork_invoice_menu"  action="upwork_invoice_import_list_action" sequence="1"/>
+    <menuitem id="configuration_menu" name="Configuration" parent="main_upwork_invoice_menu" sequence="2"/>
+    <menuitem id="upwork_invoice_stage_menu" name="Stages" parent="configuration_menu" action="upwork_invoice_stage_list_action"/>
+
+</odoo>
