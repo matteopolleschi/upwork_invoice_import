@@ -24,8 +24,10 @@
                             <field name="account_name"/>
                             <field name="po"/>
                             <field name="amount"/>
-                            <field name="amount_local_currency"/>
-                            <field name="currency_id"/>
+                            <field name="dollar_currency"/>
+                            <field name="amount_local_currency" invisible="1"/>
+                            <field name="amount_converted"/>
+                            <field name="euro_currency "/>
                             <field name="balance"/>
                         </group>
                         <group>
@@ -80,7 +82,6 @@
                 <field name="freelancer"/>
                 <field name="po"/>
                 <field name="amount"/>
-                <field name="currency_id"/>
                 <field name="balance"/>
             </tree>
         </field>
@@ -101,8 +102,9 @@
                 <field name="account_name"/>
                 <field name="po"/>
                 <field name="amount"/>
+                <field name="dollar_currency"/>
                 <field name="amount_local_currency"/>
-                <field name="currency_id"/>
+                <field name="euro_currency"/>
                 <field name="balance"/>
                 <field name="color"/>
                 <templates>
