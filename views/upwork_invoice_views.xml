@@ -27,7 +27,7 @@
                             <field name="dollar_currency"/>
                             <field name="amount_local_currency" invisible="1"/>
                             <field name="amount_converted"/>
-                            <field name="euro_currency "/>
+                            <field name="euro_currency"/>
                             <field name="balance"/>
                         </group>
                         <group>
