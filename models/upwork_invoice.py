@@ -25,10 +25,12 @@ class UpworkInvoice(models.Model):
     account_name = fields.Char(string='Account name')
     po = fields.Char(string='PO')
 
-    amount = fields.Monetary(string='Amount', currency_field='currency_id')
-    amount_local_currency = fields.Monetary(string='Amount in local currency', currency_field='currency_id')
-    currency_id = fields.Many2one('res.currency', string="Currency", default= lambda self : self.env.ref('base.main_company').currency_id, readonly=True)
-    balance = fields.Monetary(string='Balance', currency_field='currency_id')
+    amount = fields.Monetary(string='Amount', currency_field='dollar_currency')
+    amount_converted = fields.Monetary(string='Amount in Euro', currency_field='euro_currency', compute='_compute_amount', store=True)
+    amount_local_currency = fields.Monetary(string='Amount in local currency', currency_field='euro_currency')
+    dollar_currency = fields.Many2one('res.currency', string="Currency", default= lambda self : self.env['res.currency'].search([('name', '=', 'USD')]).id, readonly=True)
+    euro_currency = fields.Many2one('res.currency', string="Currency", default= lambda self : self.env['res.currency'].search([('name', '=', 'EUR')]).id, readonly=True)
+    balance = fields.Monetary(string='Balance', currency_field='dollar_currency')
     invoice_file = fields.Binary(string="Source Document")
 
     stage_id = fields.Many2one('upwork.invoice.stage', string='Stage', index=True, default=lambda s: s._get_default_stage_id(), group_expand='_read_group_stage_ids', track_visibility='onchange')
@@ -50,6 +52,14 @@ class UpworkInvoice(models.Model):
     def _compute_date(self):
         for record in self:
             record.invoice_date = self.convertDate(record.date)
+    
+    @api.depends('amount')
+    def _compute_amount(self):
+        for record in self:
+            result = self.env['upwork.invoice.rate'].search([('rate_date', '=', record.invoice_date)])
+            if bool(result):
+                record.amount_converted = record.amount * result.rate
+            else: record.amount_converted = 0.0
 
     def _get_default_stage_id(self):
         return self.env['upwork.invoice.stage'].search([], order='sequence', limit=1)
@@ -83,7 +93,7 @@ class UpworkInvoice(models.Model):
             invoice_line = self.env['account.invoice.line'].create({
                 'name': res.description,
                 'product_id': product.id,
-                'price_unit': abs(res.amount),
+                'price_unit': abs(res.amount_converted),
                 'quantity': 1.0,
                 'account_id': account.id,
                 'invoice_id': invoice.id
@@ -105,8 +115,8 @@ class UpworkInvoice(models.Model):
             account_invoice.write({'date_invoice': values.get('invoice_date')})
         if bool(values.get('description')):
             account_invoice_line.write({'name': values.get('description')})
-        if bool(values.get('amount')):
-            account_invoice_line.write({'price_unit': abs(values.get('amount'))})
+        if bool(values.get('amount_converted')):
+            account_invoice_line.write({'price_unit': abs(values.get('amount_converted'))})
 
         return res
 
@@ -143,13 +153,13 @@ class UpworkInvoiceImport(models.Model):
                 if self.env['res.partner'].search([('name', '=', line['Agency'])]):
                     agency = self.env['res.partner'].search([('name', '=', line['Agency'])])
                 else :
-                    agency = self.env['res.partner'].create({'name': line['Agency']})
+                    agency = self.env['res.partner'].create({'name': line['Agency'], 'company_type': 'company', 'supplier': True})
 
             if line['Freelancer'] != "":
                 if self.env['res.partner'].search([('name', '=', line['Freelancer'])]):
                     freelancer = self.env['res.partner'].search([('name', '=', line['Freelancer'])])
                 else :
-                    freelancer = self.env['res.partner'].create({'name': line['Freelancer']})
+                    freelancer = self.env['res.partner'].create({'name': line['Freelancer'], 'supplier': True})
             
             self.env['upwork.invoice'].create({
                 'name': line['Ref ID'] if 'Ref ID' in line.keys() else 'Ref ID Missing', 
@@ -172,3 +182,58 @@ class UpworkInvoiceImport(models.Model):
             self.import_file(record)
         
         return {'type': 'ir.actions.client','tag': 'reload'}
+
+
+class UpworkInvoiceRate(models.Model):
+    _name = 'upwork.invoice.rate'
+    _description = "Currency Rate"
+    _order = 'id'
+
+    name = fields.Char(string='Date', required=True)
+    rate_date = fields.Date(string='Rate date', compute='_compute_date', store=True)
+    rate = fields.Monetary(string='Rate', currency_field='euro_currency')
+    euro_currency = fields.Many2one('res.currency', string="Currency", default= lambda self : self.env['res.currency'].search([('name', '=', 'EUR')]).id, readonly=True)
+    color = fields.Integer()
+
+    def convertDate(self, DateString):
+        if bool(DateString) != False :
+            Datelist = DateString.split()
+            month = Datelist[0]
+            day = Datelist[1].strip(',')
+            year = Datelist[2]
+            DateConst = month + " " + day + " " + year
+            DateResult = datetime.strptime(DateConst, '%b %d %Y').date()
+        else: DateResult = DateString
+        return DateResult
+
+    @api.depends('name')
+    def _compute_date(self):
+        for record in self:
+            record.rate_date = self.convertDate(record.name)
+
+
+class UpworkInvoiceRateImport(models.Model):
+    _name = 'upwork.invoice.rate.import'
+    _description = "Currency Rate Import"
+    
+    rate_files = fields.Many2many(comodel_name='ir.attachment', relation='class_ir_attachments_rel_upwork_invoice_rate', column1='class_id', column2='attachment_id', string='Attachments')
+    
+    def import_file(self, rate_file):
+        csv_data = base64.b64decode(rate_file.datas)
+        data_file = StringIO(csv_data.decode("utf-8"))
+        data_file.seek(0)
+        file_reader = []
+        csv_reader = csv.DictReader(data_file)
+        file_reader.extend(csv_reader)
+        for line in file_reader:            
+            self.env['upwork.invoice.rate'].create({
+                'name': line['Date'] if 'Date' in line.keys() else 'Missing Date', 
+                'rate': float(line['Rate']) if bool(line['Rate']) and 'Rate' in line.keys() else None,
+                })
+
+    def import_files(self):
+        for record in self.rate_files:
+            self.import_file(record)
+        
+        return {'type': 'ir.actions.client','tag': 'reload'}
+

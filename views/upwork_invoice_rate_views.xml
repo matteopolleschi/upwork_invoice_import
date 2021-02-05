@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="upwork_invoice_rate_form_view">
+        <field name="name">upwork.invoice.rate.form</field>
+        <field name="model">upwork.invoice.rate</field>
+        <field name="arch" type="xml">
+            <form string="Currency Rate Form" class="o_subscription_form">
+                <sheet string="Currency rate">
+                    <group name="main">
+                        <group>
+                            <field name="name" invisible="1"/>
+                            <field name="rate_date"/>
+                            <field name="rate"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_rate_search_view">
+        <field name="name">upwork.invoice.rate.search</field>
+        <field name="model">upwork.invoice.rate</field>
+        <field name="arch" type="xml">
+            <search string="Currency Rate Search">
+                <field name="rate_date"/>
+                <field name="rate"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_rate_tree_view">
+        <field name="name">upwork.invoice.rate/tree</field>
+        <field name="model">upwork.invoice.rate</field>
+        <field name="arch" type="xml">
+            <tree string="Currency Rate Tree">
+                <field name="rate_date"/>
+                <field name="rate"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="upwork_invoice_rate_calendar_view">
+        <field name="name">upwork.invoice.rate.calendar</field>
+        <field name="model">upwork.invoice.rate</field>
+        <field name="arch" type="xml">
+            <calendar string="Currency Rate Calendar" date_start="rate_date" date_stop="rate_date" color="color">
+                <field name="rate"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="upwork_invoice_rate_list_action">
+        <field name="name">Currency Rate</field>
+        <field name="res_model">upwork.invoice.rate</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,calendar,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Click on import to create some currency rates
+            </p>
+        </field>
+    </record>
+
+
+    <record model="ir.ui.view" id="upwork_invoice_rate_import_form_view">
+        <field name="name">upwork.invoice.rate.import.form</field>
+        <field name="model">upwork.invoice.rate.import</field>
+        <field name="arch" type="xml">
+            <form string="Import Form">
+                <group col="4" string="Import Currency Rates">
+                    <field name="rate_files" widget="many2many_binary"/>
+                </group>
+                <footer>
+                    <button name="import_files" string="Import" type="object" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel" name="cancel" class="oe_link"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="upwork_invoice_rate_import_list_action">
+        <field name="name">Import Currency Rates</field>
+        <field name="res_model">upwork.invoice.rate.import</field>
+        <field name="view_type">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="upwork_invoice_rate_import_form_view"/>
+    </record>
+
+    <menuitem id="upwork_invoice_rate_import_menu" name="Rates Import"  parent="import_menu"  action="upwork_invoice_rate_import_list_action" sequence="2"/>
+    <menuitem id="upwork_invoice_rate_menu" name="Rates" parent="configuration_menu" action="upwork_invoice_rate_list_action" sequence="1"/>
+
+</odoo>

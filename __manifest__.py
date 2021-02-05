@@ -25,6 +25,7 @@
     'data': [
         'security/ir.model.access.csv',
         'views/upwork_invoice_views.xml',
+        'views/upwork_invoice_rate_views.xml',
     ],
 
     'demo': [],
