@@ -245,7 +245,7 @@
 
     <menuitem id="main_upwork_invoice_menu" name="Upwork Invoice" action="upwork_invoice_list_action"/>
     <menuitem id="import_menu" name="Import"  parent="main_upwork_invoice_menu" sequence="1"/>
-    <menuitem id="upwork_invoice_import_menu" name="Rates Import"  parent="import_menu"  action="upwork_invoice_import_list_action" sequence="1"/>
+    <menuitem id="upwork_invoice_import_menu" name="Invoices Import"  parent="import_menu"  action="upwork_invoice_import_list_action" sequence="1"/>
     <menuitem id="configuration_menu" name="Configuration" parent="main_upwork_invoice_menu" sequence="2"/>
     <menuitem id="upwork_invoice_stage_menu" name="Stages" parent="configuration_menu" action="upwork_invoice_stage_list_action" sequence="2"/>
 
