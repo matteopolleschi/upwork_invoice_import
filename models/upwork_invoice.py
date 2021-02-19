@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
 from datetime import datetime
 from io import StringIO
 import base64
 import csv
+
+_logger = logging.getLogger(__name__)
+
+try:
+    from codicefiscale import build
+
+except ImportError:
+    _logger.warning(
+        "codicefiscale library not found. "
+        "If you plan to use it, please install the codicefiscale library"
+        " from https://pypi.python.org/pypi/codicefiscale")
 
 
 class UpworkInvoice(models.Model):
@@ -82,8 +96,9 @@ class UpworkInvoice(models.Model):
                 'name': 'Generic freelance service',
                 'type': 'service'
             })
-            account = self.env['account.account'].search([('code', '=', '310100')])
+            account = self.env['account.account'].search([('code', '=', '410100')])
             invoice = self.env['account.invoice'].create({
+                'type': 'in_invoice',
                 'name': res.name if bool(res.name) else 'Ref ID Missing',
                 'partner_id': partner,
                 'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
@@ -98,6 +113,8 @@ class UpworkInvoice(models.Model):
                 'account_id': account.id,
                 'invoice_id': invoice.id
             })
+            export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
+
         return res
 
     def write(self, values):
@@ -139,6 +156,13 @@ class UpworkInvoiceImport(models.Model):
     
     invoice_files = fields.Many2many(comodel_name='ir.attachment', relation='class_ir_attachments_rel_upwork_invoice', column1='class_id', column2='attachment_id', string='Attachments')
     
+    def splitFullName(self, FullName):
+        if bool(FullName) != False :
+            Namelist = FullName.split(" ", 1)
+            StringResult = {'firstname': Namelist[0], 'lastname': Namelist[1]}
+        else: StringResult = {'firstname': '', 'lastname': ''}
+        return StringResult
+
     def import_file(self, invoice_file):
         csv_data = base64.b64decode(invoice_file.datas)
         data_file = StringIO(csv_data.decode("utf-8"))
@@ -153,13 +177,48 @@ class UpworkInvoiceImport(models.Model):
                 if self.env['res.partner'].search([('name', '=', line['Agency'])]):
                     agency = self.env['res.partner'].search([('name', '=', line['Agency'])])
                 else :
-                    agency = self.env['res.partner'].create({'name': line['Agency'], 'company_type': 'company', 'supplier': True})
+                    # Update for fiscale code compute
+                    generic_city = self.env['res.city.it.code.distinct'].search([('name', '=', 'MILANO')])
+                    generic_state = self.env['res.country.state'].search([('name', '=', 'Milano')])
+                    generic_country = self.env['res.country'].search([('name', '=', 'Italy')])
+                    national_code = self.env['wizard.compute.fc']._get_national_code(generic_city.name, generic_state.code, fields.Date.today())
+                    fiscal_code = build(line['Agency'], line['Agency'], fields.Date.today(), 'M', national_code)
+                    agency = self.env['res.partner'].create({
+                        'name': line['Agency'], 
+                        'company_type': 'company', 
+                        'supplier': True,
+                        'street': 'Generic freelancer address',
+                        'city': 'MILANO',
+                        'country_id': generic_country.id,
+                        'zip': '20019',
+                        'vat': 'BE0477472701',
+                        'fiscalcode' : fiscal_code,
+                    })
 
             if line['Freelancer'] != "":
                 if self.env['res.partner'].search([('name', '=', line['Freelancer'])]):
                     freelancer = self.env['res.partner'].search([('name', '=', line['Freelancer'])])
                 else :
-                    freelancer = self.env['res.partner'].create({'name': line['Freelancer'], 'supplier': True})
+                    # Update for fiscale code compute
+                    name = self.splitFullName(line['Freelancer'])
+                    generic_city = self.env['res.city.it.code.distinct'].search([('name', '=', 'MILANO')])
+                    generic_state = self.env['res.country.state'].search([('name', '=', 'Milano')])
+                    generic_country = self.env['res.country'].search([('name', '=', 'Italy')])
+                    national_code = self.env['wizard.compute.fc']._get_national_code(generic_city.name, generic_state.code, fields.Date.today())
+                    fiscal_code = build(name['lastname'], name['firstname'], fields.Date.today(), 'M', national_code)
+                    freelancer = self.env['res.partner'].create({
+                        'firstname': name['firstname'],
+                        'lastname': name['lastname'],
+                        'name': line['Freelancer'],
+                        'company_type': 'person', 
+                        'supplier': True,
+                        'street': 'Generic freelancer address',
+                        'city': 'MILANO',
+                        'country_id': generic_country.id,
+                        'zip': '20019',
+                        'vat': 'BE0477472701',
+                        'fiscalcode' : fiscal_code,
+                    })
             
             self.env['upwork.invoice'].create({
                 'name': line['Ref ID'] if 'Ref ID' in line.keys() else 'Ref ID Missing', 

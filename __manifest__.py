@@ -19,7 +19,10 @@
     'depends': [
         'base',
         'contacts',
-        'account'
+        'account',
+        'l10n_it_fiscalcode',
+        'l10n_it_fatturapa_out',
+
     ],
 
     'data': [
