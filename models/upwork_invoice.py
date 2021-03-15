@@ -34,11 +34,9 @@ class UpworkInvoice(models.Model):
     description = fields.Text(string='Description')
     agency = fields.Many2one('res.partner', string='Agency')
     freelancer = fields.Many2one('res.partner', string='Freelancer')
-
     team = fields.Char(string='Team')
     account_name = fields.Char(string='Account name')
     po = fields.Char(string='PO')
-
     amount = fields.Monetary(string='Amount', currency_field='dollar_currency')
     amount_converted = fields.Monetary(string='Amount in Euro', currency_field='euro_currency', compute='_compute_amount', store=True)
     amount_local_currency = fields.Monetary(string='Amount in local currency', currency_field='euro_currency')
@@ -46,7 +44,6 @@ class UpworkInvoice(models.Model):
     euro_currency = fields.Many2one('res.currency', string="Currency", default= lambda self : self.env['res.currency'].search([('name', '=', 'EUR')]).id, readonly=True)
     balance = fields.Monetary(string='Balance', currency_field='dollar_currency')
     invoice_file = fields.Binary(string="Source Document")
-
     stage_id = fields.Many2one('upwork.invoice.stage', string='Stage', index=True, default=lambda s: s._get_default_stage_id(), group_expand='_read_group_stage_ids', track_visibility='onchange')
     in_progress = fields.Boolean(related='stage_id.in_progress')
     color = fields.Integer()
@@ -86,27 +83,68 @@ class UpworkInvoice(models.Model):
     def create(self, values):
         res = super(UpworkInvoice, self).create(values)
         partner = None
+        upwork_partner = None
         if bool(res.freelancer):
             partner = res.freelancer.id
         if bool(res.agency):
             partner = res.agency.id
+        
+        if bool(self.env['res.partner'].search([('name', '=', 'Upwork')])):
+            upwork_partner = self.env['res.partner'].search([('name', '=', 'Upwork')])
+        else :
+            upwork_partner = self.env['res.partner'].create({'name': 'Upwork', 'company_type': 'company', 'supplier': True})
 
-        if res.invoice_type != "Payment":
+        if res.invoice_type == "Hourly":
+            account = self.env['account.account'].search([('code', '=', '410100')])
+            #account_tax = self.env['account.account'].search([('code', '=', '160100')])
+            #tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
             product =  self.env['product.product'].create({
-                'name': 'Generic freelance service',
+                'name': 'Freelance Project',
                 'type': 'service'
             })
-            account = self.env['account.account'].search([('code', '=', '410100')])
             invoice = self.env['account.invoice'].create({
                 'type': 'in_invoice',
                 'name': res.name if bool(res.name) else 'Ref ID Missing',
                 'partner_id': partner,
                 'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
                 'user_id': None,
-                'upwork_invoice': res.id
+                'upwork_invoice': res.id,
+                'state': 'open'
             })
             invoice_line = self.env['account.invoice.line'].create({
                 'name': res.description,
+                'product_id': product.id,
+                'price_unit': abs(res.amount_converted),
+                'quantity': 1.0,
+                'account_id': account.id,
+                'invoice_id': invoice.id
+            })
+            #tax_line = self.env['account.invoice.tax'].create({
+            #    'name': res.description,
+            #    'account_id': account_tax.id,
+            #    'amount': abs(res.amount_converted),
+            #    'invoice_id': invoice.id
+            #})
+            export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
+        elif res.invoice_type == "Processing Fee":
+            account = self.env['account.account'].search([('code', '=', '410100')])
+            #account_tax = self.env['account.account'].search([('code', '=', '160100')])
+            #tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
+            product =  self.env['product.product'].create({
+                'name': 'Upwork Fee',
+                'type': 'service'
+            })
+            invoice = self.env['account.invoice'].create({
+                'type': 'in_invoice',
+                'name': res.name if bool(res.name) else 'Ref ID Missing',
+                'partner_id': upwork_partner.id,
+                'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
+                'user_id': None,
+                'upwork_invoice': res.id,
+                'state': 'open'
+            })
+            invoice_line = self.env['account.invoice.line'].create({
+                'name': str(partner) +' '+ res.description,
                 'product_id': product.id,
                 'price_unit': abs(res.amount_converted),
                 'quantity': 1.0,
@@ -121,6 +159,7 @@ class UpworkInvoice(models.Model):
         res = super(UpworkInvoice, self).write(values)
         account_invoice = self.env['account.invoice'].search([('upwork_invoice.id', '=', self.id)])
         account_invoice_line = self.env['account.invoice.line'].search([('invoice_id', '=', account_invoice.id)])
+        upwork = self.env['res.partner'].search([('name', '=', 'Upwork')])
         
         if bool(values.get('name')):
             account_invoice.write({'name': values.get('name')})
