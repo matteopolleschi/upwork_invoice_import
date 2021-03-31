@@ -7,6 +7,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.osv import expression
 from datetime import datetime
 from io import StringIO
+import xml.etree.ElementTree as ET
 import base64
 import csv
 
@@ -92,12 +93,27 @@ class UpworkInvoice(models.Model):
         if bool(self.env['res.partner'].search([('name', '=', 'Upwork')])):
             upwork_partner = self.env['res.partner'].search([('name', '=', 'Upwork')])
         else :
-            upwork_partner = self.env['res.partner'].create({'name': 'Upwork', 'company_type': 'company', 'supplier': True})
+            generic_city = self.env['res.city.it.code.distinct'].search([('name', '=', 'MILANO')])
+            generic_state = self.env['res.country.state'].search([('name', '=', 'Milano')])
+            generic_country = self.env['res.country'].search([('name', '=', 'Italy')])
+            national_code = self.env['wizard.compute.fc']._get_national_code(generic_city.name, generic_state.code, fields.Date.today())
+            fiscal_code = build('Upwork', 'Upwork', fields.Date.today(), 'M', national_code)
+            upwork_partner = self.env['res.partner'].create({
+                'name': 'Upwork', 
+                'company_type': 'company', 
+                'supplier': True,
+                'street': 'Generic freelancer address',
+                'city': 'MILANO',
+                'country_id': generic_country.id,
+                'zip': '20019',
+                'vat': 'BE0477472701',
+                'fiscalcode': fiscal_code,
+            })
 
         if res.invoice_type == "Hourly":
             account = self.env['account.account'].search([('code', '=', '410100')])
-            #account_tax = self.env['account.account'].search([('code', '=', '160100')])
-            #tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
+            account_tax = self.env['account.account'].search([('code', '=', '160100')])
+            tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
             product =  self.env['product.product'].create({
                 'name': 'Freelance Project',
                 'type': 'service'
@@ -108,8 +124,7 @@ class UpworkInvoice(models.Model):
                 'partner_id': partner,
                 'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
                 'user_id': None,
-                'upwork_invoice': res.id,
-                'state': 'open'
+                'upwork_invoice': res.id
             })
             invoice_line = self.env['account.invoice.line'].create({
                 'name': res.description,
@@ -117,19 +132,22 @@ class UpworkInvoice(models.Model):
                 'price_unit': abs(res.amount_converted),
                 'quantity': 1.0,
                 'account_id': account.id,
+                'invoice_line_tax_ids': [(4, tax.id, 0)],
+                'invoice_id': invoice.id,
+                
+            })
+            tax_line = self.env['account.invoice.tax'].create({
+                'name': tax.name,
+                'account_id': account_tax.id,
+                'amount': abs(res.amount_converted) * tax.amount/100,
                 'invoice_id': invoice.id
             })
-            #tax_line = self.env['account.invoice.tax'].create({
-            #    'name': res.description,
-            #    'account_id': account_tax.id,
-            #    'amount': abs(res.amount_converted),
-            #    'invoice_id': invoice.id
-            #})
-            export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
+            invoice.action_invoice_open()
+            #export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
         elif res.invoice_type == "Processing Fee":
             account = self.env['account.account'].search([('code', '=', '410100')])
-            #account_tax = self.env['account.account'].search([('code', '=', '160100')])
-            #tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
+            account_tax = self.env['account.account'].search([('code', '=', '160100')])
+            tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
             product =  self.env['product.product'].create({
                 'name': 'Upwork Fee',
                 'type': 'service'
@@ -140,8 +158,7 @@ class UpworkInvoice(models.Model):
                 'partner_id': upwork_partner.id,
                 'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
                 'user_id': None,
-                'upwork_invoice': res.id,
-                'state': 'open'
+                'upwork_invoice': res.id
             })
             invoice_line = self.env['account.invoice.line'].create({
                 'name': str(partner) +' '+ res.description,
@@ -149,9 +166,17 @@ class UpworkInvoice(models.Model):
                 'price_unit': abs(res.amount_converted),
                 'quantity': 1.0,
                 'account_id': account.id,
+                'invoice_line_tax_ids': [(4, tax.id, 0)],
                 'invoice_id': invoice.id
             })
-            export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
+            tax_line = self.env['account.invoice.tax'].create({
+                'name': tax.name,
+                'account_id': account_tax.id,
+                'amount': abs(res.amount_converted) * tax.amount/100,
+                'invoice_id': invoice.id
+            })
+            invoice.action_invoice_open()
+            #export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
 
         return res
 
@@ -231,7 +256,7 @@ class UpworkInvoiceImport(models.Model):
                         'country_id': generic_country.id,
                         'zip': '20019',
                         'vat': 'BE0477472701',
-                        'fiscalcode' : fiscal_code,
+                        'fiscalcode': fiscal_code,
                     })
 
             if line['Freelancer'] != "":
@@ -256,7 +281,7 @@ class UpworkInvoiceImport(models.Model):
                         'country_id': generic_country.id,
                         'zip': '20019',
                         'vat': 'BE0477472701',
-                        'fiscalcode' : fiscal_code,
+                        'fiscalcode': fiscal_code,
                     })
             
             self.env['upwork.invoice'].create({
@@ -335,3 +360,37 @@ class UpworkInvoiceRateImport(models.Model):
         
         return {'type': 'ir.actions.client','tag': 'reload'}
 
+
+class UpworkInvoiceFatturapa(models.Model):
+    _name = 'upwork.invoice.fatturapa'
+    _description = "Electronic Invoice"
+    _order = 'id'
+
+    name = fields.Char(string='Name', required=True)
+    attachment = fields.Binary(string='Attachments')
+
+    def update_electronic_invoice(self):
+        Fattura = self.env['fatturapa.attachment.out']
+        #Upwork_invoice = self.env['upwork.invoice'].search(['upwork_invoice', '!=', False])
+        tags = ['IdFiscaleIVA', 'CodiceFiscale', 'Sede']
+        
+        def iterator(parents, nested=False, tag=None):
+            for child in parents:
+                if nested:
+                    if len(child) >= 1:
+                        iterator(child, nested, tag)
+                if child.tag == tag:
+                    parents.remove(child)
+        
+        #for f_id in Fattura.search(['out_invoice_ids', 'in', Upwork_invoice]):
+        for fatturapa in Fattura.search([]):
+            xml_string = fatturapa.ir_attachment_id.get_xml_string()
+            root = ET.fromstring(xml_string)
+            for tag in tags:
+                iterator(root, nested=True, tag=tag)
+            xml_string = ET.tostring(root)
+            xml_file_name = 'upwork_'+ fatturapa.name
+            self.env['upwork.invoice.fatturapa'].create({
+                'name': xml_file_name, 
+                'attachment': base64.b64encode(xml_string), 
+            })

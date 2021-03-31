@@ -9,3 +9,5 @@ upwork_invoice_rate_manager,upwork_invoice_rate manager,model_upwork_invoice_rat
 upwork_invoice_rate_read_all,upwork_invoice_rate all,model_upwork_invoice_rate,base.group_public,1,0,0,0
 upwork_invoice_rate_import_manager,upwork_invoice_rate_import manager,model_upwork_invoice_rate_import,base.user_admin,1,1,1,1
 upwork_invoice_rate_import_read_all,upwork_invoice_rate_import all,model_upwork_invoice_rate_import,base.group_public,1,0,0,0
+upwork_invoice_fatturapa_manager,upwork_invoice_fatturapa manager,model_upwork_invoice_fatturapa,base.user_admin,1,1,1,1
+upwork_invoice_fatturapa_read_all,upwork_invoice_fatturapa all,model_upwork_invoice_fatturapa,base.group_public,1,0,0,0

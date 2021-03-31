@@ -6,8 +6,10 @@
 
     'description': """
         This Module:
-            - Import invoices from Upwork
-            - Create records based on imports
+            - Import invoices from Upwork.
+            - Create Bills based on imports.
+            - Generate Electronic invoices.
+            - Update e-invoices and store new version in the module.
     """,
 
     'author': "Mounir lahsini",
@@ -29,6 +31,11 @@
         'security/ir.model.access.csv',
         'views/upwork_invoice_views.xml',
         'views/upwork_invoice_rate_views.xml',
+        'views/upwork_invoice_asset.xml',
+    ],
+
+    'qweb': [
+        'static/src/xml/e_invoice.xml',
     ],
 
     'demo': [],
