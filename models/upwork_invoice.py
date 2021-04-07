@@ -111,73 +111,58 @@ class UpworkInvoice(models.Model):
             })
 
         if res.invoice_type == "Hourly":
-            account = self.env['account.account'].search([('code', '=', '410100')])
-            account_tax = self.env['account.account'].search([('code', '=', '160100')])
             tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
+            journal = self.env['account.invoice']._default_journal().id
             product =  self.env['product.product'].create({
-                'name': 'Freelance Project',
+                'name': res.description,
                 'type': 'service'
             })
-            invoice = self.env['account.invoice'].create({
+            supplier_line = {
+                'product_id': product.id,
+                'name': product.name,
+                'quantity': 1,
+                'account_id': journal,
+                'invoice_line_tax_ids': [(4, tax.id, 0)],
+                'price_unit': abs(res.amount_converted),
+            }
+            record_line = {
                 'type': 'in_invoice',
-                'name': res.name if bool(res.name) else 'Ref ID Missing',
                 'partner_id': partner,
                 'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
-                'user_id': None,
-                'upwork_invoice': res.id
-            })
-            invoice_line = self.env['account.invoice.line'].create({
-                'name': res.description,
-                'product_id': product.id,
-                'price_unit': abs(res.amount_converted),
-                'quantity': 1.0,
-                'account_id': account.id,
-                'invoice_line_tax_ids': [(4, tax.id, 0)],
-                'invoice_id': invoice.id,
-                
-            })
-            tax_line = self.env['account.invoice.tax'].create({
-                'name': tax.name,
-                'account_id': account_tax.id,
-                'amount': abs(res.amount_converted) * tax.amount/100,
-                'invoice_id': invoice.id
-            })
-            invoice.action_invoice_open()
-            #export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
+                'upwork_invoice': res.id,
+                'invoice_line_ids': [(0, 0, supplier_line)],
+            }
+            record = self.env['account.invoice'].create(record_line)
+            record.action_invoice_open()
+            wizard = self.env['wizard.export.fatturapa'].create({})
+            export_e_invoice = wizard.with_context({'active_ids': [record.id]}).exportFatturaPA()
         elif res.invoice_type == "Processing Fee":
-            account = self.env['account.account'].search([('code', '=', '410100')])
-            account_tax = self.env['account.account'].search([('code', '=', '160100')])
             tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
+            journal = self.env['account.invoice']._default_journal().id
             product =  self.env['product.product'].create({
-                'name': 'Upwork Fee',
+                'name': res.description,
                 'type': 'service'
             })
-            invoice = self.env['account.invoice'].create({
+            supplier_line = {
+                'product_id': product.id,
+                'name': product.name,
+                'quantity': 1,
+                'account_id': journal,
+                'invoice_line_tax_ids': [(4, tax.id, 0)],
+                'price_unit': abs(res.amount_converted),
+            }
+            record_line = {
                 'type': 'in_invoice',
-                'name': res.name if bool(res.name) else 'Ref ID Missing',
                 'partner_id': upwork_partner.id,
                 'date_invoice': res.invoice_date if bool(res.invoice_date) else None,
-                'user_id': None,
-                'upwork_invoice': res.id
-            })
-            invoice_line = self.env['account.invoice.line'].create({
-                'name': str(partner) +' '+ res.description,
-                'product_id': product.id,
-                'price_unit': abs(res.amount_converted),
-                'quantity': 1.0,
-                'account_id': account.id,
-                'invoice_line_tax_ids': [(4, tax.id, 0)],
-                'invoice_id': invoice.id
-            })
-            tax_line = self.env['account.invoice.tax'].create({
-                'name': tax.name,
-                'account_id': account_tax.id,
-                'amount': abs(res.amount_converted) * tax.amount/100,
-                'invoice_id': invoice.id
-            })
-            invoice.action_invoice_open()
-            #export_e_invoice = self.env['wizard.export.fatturapa'].exportFatturaPA()
-
+                'upwork_invoice': res.id,
+                'invoice_line_ids': [(0, 0, supplier_line)],
+            }
+            record = self.env['account.invoice'].create(record_line)
+            record.action_invoice_open()
+            wizard = self.env['wizard.export.fatturapa'].create({})
+            export_e_invoice = wizard.with_context({'active_ids': [record.id]}).exportFatturaPA()
+        
         return res
 
     def write(self, values):
