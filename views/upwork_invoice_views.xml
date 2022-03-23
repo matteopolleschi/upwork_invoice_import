@@ -161,7 +161,6 @@
     <record model="ir.actions.act_window" id="upwork_invoice_list_action">
         <field name="name">Upwork Invoice</field>
         <field name="res_model">upwork.invoice</field>
-        <field name="view_type">form</field>
         <field name="view_mode">kanban,tree,calendar,form</field>
         <field name="context">{}</field>
         <field name="help" type="html">
@@ -210,7 +209,6 @@
         <field name="name">Upwork Invoice Stages</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">upwork.invoice.stage</field>
-        <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -238,7 +236,6 @@
     <record model="ir.actions.act_window" id="upwork_invoice_import_list_action">
         <field name="name">Import Upwork Invoices</field>
         <field name="res_model">upwork.invoice.import</field>
-        <field name="view_type">form</field>
         <field name="target">new</field>
         <field name="view_id" ref="upwork_invoice_import_form_view"/>
     </record>
@@ -275,7 +272,6 @@
         <field name="name">Electronic Invoice</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">upwork.invoice.fatturapa</field>
-        <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

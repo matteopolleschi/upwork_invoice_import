@@ -1,13 +1,13 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-upwork_invoice_manager,upwork_invoice manager,model_upwork_invoice,base.user_admin,1,1,1,1
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+upwork_invoice_manager,upwork_invoice manager,model_upwork_invoice,base.group_system,1,1,1,1
 upwork_invoice_read_all,upwork_invoice all,model_upwork_invoice,base.group_public,1,0,0,0
-upwork_invoice_stage_manager,upwork_invoice_stage manager,model_upwork_invoice_stage,base.user_admin,1,1,1,1
+upwork_invoice_stage_manager,upwork_invoice_stage manager,model_upwork_invoice_stage,base.group_system,1,1,1,1
 upwork_invoice_stage_read_all,upwork_invoice_stage all,model_upwork_invoice_stage,base.group_public,1,0,0,0
-upwork_invoice_import_manager,upwork_invoice_import manager,model_upwork_invoice_import,base.user_admin,1,1,1,1
+upwork_invoice_import_manager,upwork_invoice_import manager,model_upwork_invoice_import,base.group_system,1,1,1,1
 upwork_invoice_import_read_all,upwork_invoice_import all,model_upwork_invoice_import,base.group_public,1,0,0,0
-upwork_invoice_rate_manager,upwork_invoice_rate manager,model_upwork_invoice_rate,base.user_admin,1,1,1,1
+upwork_invoice_rate_manager,upwork_invoice_rate manager,model_upwork_invoice_rate,base.group_system,1,1,1,1
 upwork_invoice_rate_read_all,upwork_invoice_rate all,model_upwork_invoice_rate,base.group_public,1,0,0,0
-upwork_invoice_rate_import_manager,upwork_invoice_rate_import manager,model_upwork_invoice_rate_import,base.user_admin,1,1,1,1
+upwork_invoice_rate_import_manager,upwork_invoice_rate_import manager,model_upwork_invoice_rate_import,base.group_system,1,1,1,1
 upwork_invoice_rate_import_read_all,upwork_invoice_rate_import all,model_upwork_invoice_rate_import,base.group_public,1,0,0,0
-upwork_invoice_fatturapa_manager,upwork_invoice_fatturapa manager,model_upwork_invoice_fatturapa,base.user_admin,1,1,1,1
+upwork_invoice_fatturapa_manager,upwork_invoice_fatturapa manager,model_upwork_invoice_fatturapa,base.group_system,1,1,1,1
 upwork_invoice_fatturapa_read_all,upwork_invoice_fatturapa all,model_upwork_invoice_fatturapa,base.group_public,1,0,0,0

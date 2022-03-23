@@ -112,7 +112,7 @@ class UpworkInvoice(models.Model):
 
         if res.invoice_type == "Hourly":
             tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
-            journal = self.env['account.invoice']._default_journal().id
+            journal = self.env['account.move']._default_journal().id
             product =  self.env['product.product'].create({
                 'name': res.description,
                 'type': 'service'
@@ -132,13 +132,13 @@ class UpworkInvoice(models.Model):
                 'upwork_invoice': res.id,
                 'invoice_line_ids': [(0, 0, supplier_line)],
             }
-            record = self.env['account.invoice'].create(record_line)
+            record = self.env['account.move'].create(record_line)
             record.action_invoice_open()
             wizard = self.env['wizard.export.fatturapa'].create({})
             export_e_invoice = wizard.with_context({'active_ids': [record.id]}).exportFatturaPA()
         elif res.invoice_type == "Processing Fee":
             tax = self.env['account.tax'].search([('name', '=', 'Iva al 22% (credito)')])
-            journal = self.env['account.invoice']._default_journal().id
+            journal = self.env['account.move']._default_journal().id
             product =  self.env['product.product'].create({
                 'name': res.description,
                 'type': 'service'
@@ -158,7 +158,7 @@ class UpworkInvoice(models.Model):
                 'upwork_invoice': res.id,
                 'invoice_line_ids': [(0, 0, supplier_line)],
             }
-            record = self.env['account.invoice'].create(record_line)
+            record = self.env['account.move'].create(record_line)
             record.action_invoice_open()
             wizard = self.env['wizard.export.fatturapa'].create({})
             export_e_invoice = wizard.with_context({'active_ids': [record.id]}).exportFatturaPA()
@@ -167,8 +167,8 @@ class UpworkInvoice(models.Model):
 
     def write(self, values):
         res = super(UpworkInvoice, self).write(values)
-        account_invoice = self.env['account.invoice'].search([('upwork_invoice.id', '=', self.id)])
-        account_invoice_line = self.env['account.invoice.line'].search([('invoice_id', '=', account_invoice.id)])
+        account_invoice = self.env['account.move'].search([('upwork_invoice.id', '=', self.id)])
+        account_invoice_line = self.env['account.move.line'].search([('invoice_id', '=', account_invoice.id)])
         upwork = self.env['res.partner'].search([('name', '=', 'Upwork')])
         
         if bool(values.get('name')):

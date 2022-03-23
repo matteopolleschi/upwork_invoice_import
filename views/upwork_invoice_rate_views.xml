@@ -54,7 +54,6 @@
     <record model="ir.actions.act_window" id="upwork_invoice_rate_list_action">
         <field name="name">Currency Rate</field>
         <field name="res_model">upwork.invoice.rate</field>
-        <field name="view_type">form</field>
         <field name="view_mode">tree,calendar,form</field>
         <field name="context">{}</field>
         <field name="help" type="html">
@@ -83,7 +82,6 @@
     <record model="ir.actions.act_window" id="upwork_invoice_rate_import_list_action">
         <field name="name">Import Currency Rates</field>
         <field name="res_model">upwork.invoice.rate.import</field>
-        <field name="view_type">form</field>
         <field name="target">new</field>
         <field name="view_id" ref="upwork_invoice_rate_import_form_view"/>
     </record>
